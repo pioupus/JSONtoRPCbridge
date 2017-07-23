@@ -22,7 +22,7 @@ void ConsoleInputWorker::process()
 }
 
 
-ApplicationClass::ApplicationClass(QObject *parent) : QObject(parent)
+ApplicationClass::ApplicationClass(QString port_name, uint baud, QObject *parent) : QObject(parent)
 {
 
     console_input_thread = new QThread();
@@ -34,6 +34,8 @@ ApplicationClass::ApplicationClass(QObject *parent) : QObject(parent)
     connect(console_input_worker, SIGNAL (finished()), console_input_worker, SLOT (deleteLater()));
     connect(console_input_thread, SIGNAL (finished()), console_input_thread, SLOT (deleteLater()));
     console_input_thread->start();
+
+    serial_port.connect(port_name,baud);
 
 }
 

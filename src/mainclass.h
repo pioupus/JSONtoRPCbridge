@@ -1,10 +1,12 @@
 #ifndef MAINCLASS_H
 #define MAINCLASS_H
 
+#include "jsoninput.h"
+#include "rpcserialport.h"
+
 #include <QObject>
 #include <QThread>
 #include <QTextStream>
-#include "jsoninput.h"
 
 class ConsoleInputWorker : public QObject {
     Q_OBJECT
@@ -25,7 +27,7 @@ class ApplicationClass : public QObject
 {
     Q_OBJECT
 public:
-    explicit ApplicationClass(QObject *parent = 0);
+    explicit ApplicationClass( QString port_name, uint baud, QObject *parent = 0);
     void test();
 
 private slots:
@@ -34,6 +36,7 @@ private slots:
 private:
     QThread* console_input_thread = nullptr;
     JsonInput json_input;
+    RPCSerialPort serial_port;
 };
 
 #endif // MAINCLASS_H
