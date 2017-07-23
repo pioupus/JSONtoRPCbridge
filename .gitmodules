@@ -1,0 +1,3 @@
+[submodule "libs/qRPCRuntimeParser"]
+	path = libs/qRPCRuntimeParser
+	url = https://github.com/pioupus/qRPCRuntimeParser
