@@ -1,33 +1,31 @@
 #ifndef RPCSERIALPORT_H
 #define RPCSERIALPORT_H
 
-
 #include "rpcruntime_protcol.h"
+//#include "rpcprotocol.h"
+#include <QObject>
 #include <QtSerialPort/QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
-#include <QObject>
 
-class RPCSerialPort : public RPCIODevice
-{
+class RPCSerialPort : public RPCIODevice {
     Q_OBJECT
 
-public:
+    public:
     RPCSerialPort();
 
     bool isConnected();
     bool connect(QString port_name, uint baud);
-    bool waitReceived(std::chrono::steady_clock::duration timeout = std::chrono::seconds(1), int bytes = 1, bool isPolling=false) override;
+    bool waitReceived(std::chrono::steady_clock::duration timeout = std::chrono::seconds(1), int bytes = 1, bool isPolling = false) override;
 
     void send(std::vector<unsigned char> data, std::vector<unsigned char> pre_encodec_data) override;
     void close();
     QString getName();
 
-protected:
+    protected:
     bool currently_in_waitReceived = false;
-signals:
+    signals:
 
-
-private:
+    private:
     void send(const QByteArray &data, const QByteArray &displayed_data = {});
     QSerialPort serial_port;
 };

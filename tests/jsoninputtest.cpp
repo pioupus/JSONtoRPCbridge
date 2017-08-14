@@ -2,21 +2,16 @@
 
 #include "../src/jsoninput.h"
 
-#include <iostream>
-#include <QString>
 #include <QDebug>
+#include <QString>
+#include <iostream>
 
-void JsonInputTest::initTestCase(){
+void JsonInputTest::initTestCase() {}
 
-}
+void JsonInputTest::cleanupTestCase() {}
 
-void JsonInputTest::cleanupTestCase(){
-
-}
-
-void JsonInputTest::JSonEscapingTest()
-{
-    JsonInput ji;
+void JsonInputTest::JSonEscapingTest() {
+    JsonInput ji(nullptr);
 
     QString garbage1 = R"(
             /{
@@ -26,7 +21,6 @@ void JsonInputTest::JSonEscapingTest()
                     "function": "test_function",
                     "arguments":
             )";
-
 
     QString garbage2 = R"(
                  "param_int1": 1,
@@ -79,7 +73,6 @@ void JsonInputTest::JSonEscapingTest()
     }/
 
             )";
-
 
     QVERIFY(!ji.append_to_input_buffer(request_a));
     QVERIFY(ji.append_to_input_buffer(request_b));

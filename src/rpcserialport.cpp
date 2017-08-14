@@ -1,8 +1,6 @@
 #include "rpcserialport.h"
 #include <assert.h>
 
-
-
 RPCSerialPort::RPCSerialPort() {
     QObject::connect(&serial_port, &QSerialPort::readyRead, [this]() {
         if (!currently_in_waitReceived) {
@@ -12,7 +10,7 @@ RPCSerialPort::RPCSerialPort() {
 }
 
 bool RPCSerialPort::isConnected() {
-    return  serial_port.isOpen();
+    return serial_port.isOpen();
 }
 
 bool RPCSerialPort::connect(QString port_name, uint baud) {
@@ -20,15 +18,14 @@ bool RPCSerialPort::connect(QString port_name, uint baud) {
     serial_port.setBaudRate(baud);
 
     return serial_port.open(QIODevice::ReadWrite);
-
 }
 
 bool RPCSerialPort::waitReceived(std::chrono::steady_clock::duration timeout, int bytes, bool isPolling) {
     auto now = std::chrono::high_resolution_clock::now();
     int received_bytes = 0;
     auto try_read = [this, &received_bytes] {
-       // auto result = Utility::promised_thread_call(this,  [this] {
-         //   QApplication::processEvents();
+        // auto result = Utility::promised_thread_call(this,  [this] {
+        //   QApplication::processEvents();
         QByteArray result = serial_port.readAll();
         //});
         if (result.isEmpty() == false) {
@@ -51,22 +48,20 @@ bool RPCSerialPort::waitReceived(std::chrono::steady_clock::duration timeout, in
     return received_bytes >= bytes;
 }
 
-void RPCSerialPort::send(std::vector<unsigned char> data, std::vector<unsigned char> pre_encodec_data)
-{
+void RPCSerialPort::send(std::vector<unsigned char> data, std::vector<unsigned char> pre_encodec_data) {
     QByteArray ba_data;
-    for (auto d:data){
+    for (auto d : data) {
         ba_data.append(d);
     }
 
     QByteArray ba_pre_enc;
-    for (auto d:pre_encodec_data){
+    for (auto d : pre_encodec_data) {
         ba_pre_enc.append(d);
     }
-    send(ba_data,ba_pre_enc);
+    send(ba_data, ba_pre_enc);
 }
 
 void RPCSerialPort::send(const QByteArray &data, const QByteArray &displayed_data) {
-
     auto size = serial_port.write(data);
     if (size == -1) {
         return;
@@ -77,7 +72,6 @@ void RPCSerialPort::send(const QByteArray &data, const QByteArray &displayed_dat
     }
     emit decoded_sent(displayed_data.isEmpty() ? data : displayed_data);
     emit sent(data);
-
 }
 
 void RPCSerialPort::close() {

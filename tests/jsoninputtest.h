@@ -1,23 +1,19 @@
 #ifndef JSONINPUTTEST_H
 #define JSONINPUTTEST_H
 
-#include <QObject>
 #include "autotest.h"
+#include <QObject>
 
-class JsonInputTest : public QObject
-{
+class JsonInputTest : public QObject {
     Q_OBJECT
 
-public:
-private slots:
+    public:
+    private slots:
     void initTestCase();
     void cleanupTestCase();
 
-
-
     void JSonEscapingTest();
 };
-
 
 DECLARE_TEST(JsonInputTest)
 
