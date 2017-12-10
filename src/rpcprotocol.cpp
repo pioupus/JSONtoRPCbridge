@@ -176,6 +176,7 @@ QString RPCProtocol::get_device_summary() {
 }
 
 void RPCProtocol::console_message(RPCConsoleLevel level, QString message) {
+    (void)message;
     switch (level) {
         case RPCConsoleLevel::note:
             //  Console::note() << message;
