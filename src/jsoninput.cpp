@@ -213,7 +213,7 @@ static void set_runtime_parameter(RPCRuntimeEncodedParam &param, QJsonValue jval
         case QJsonValue::Type::Array: {
             const QJsonArray &arr = jval.toArray();
 
-            for (std::size_t i = 0; i < arr.count(); i++) {
+            for (int i = 0; i < arr.count(); i++) {
                 set_runtime_parameter(param[i], arr[i]);
             }
         } break;

@@ -36,7 +36,12 @@ SOURCES +=     mainclass.cpp
 #SOURCES +=     serialworker.cpp
 SOURCES +=     qt_util.cpp
 
+win32 {
+    SH = C:/Program Files/Git/bin/sh.exe
+}else{
+    SH = sh
+}
 
-SH = C:/Program Files/Git/bin/sh.exe
+
 
 system($$system_quote($$SH) $$PWD/../git.sh)
