@@ -131,8 +131,13 @@ RPCProtocol::~RPCProtocol() {
     assert(result);
 }
 
+QString RPCProtocol::get_client_hash() {
+    return rpc_runtime_protocol.get()->get_client_hash();
+}
+
 bool RPCProtocol::is_correct_protocol() {
     // const CommunicationDevice::Duration TIMEOUT = std::chrono::milliseconds{100};
+    _is_xml_loaded = false;
     if (rpc_runtime_protocol.get()->load_xml_file(xml_path)) {
         if (rpc_runtime_protocol.get()->description.has_function("get_device_descriptor")) {
             auto get_device_descriptor_function = RPCRuntimeEncodedFunctionCall{rpc_runtime_protocol.get()->description.get_function("get_device_descriptor")};
@@ -147,6 +152,7 @@ bool RPCProtocol::is_correct_protocol() {
         } else {
             qDebug() << "No RPC-function \"get_device_descriptor\" available";
         }
+        _is_xml_loaded = true;
         return true;
     }
 
@@ -195,6 +201,11 @@ RPCRuntimeEncodedFunctionCall RPCProtocol::encode_function(const std::string &na
 
 bool RPCProtocol::function_exists_for_encoding(const std::string &name) const {
     return rpc_runtime_protocol.get()->function_exists_for_encoding(name);
+}
+
+bool RPCProtocol::is_xml_loaded()
+{
+    return _is_xml_loaded;
 }
 
 void RPCProtocol::clear() {

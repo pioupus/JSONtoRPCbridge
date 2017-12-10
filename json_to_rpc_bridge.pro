@@ -16,5 +16,3 @@ SUBDIRS += tests
 app.depends = src
 tests.depends = src
 
-https://www.watchbox.de/serien/utopia-13061/staffel-1/folge-1-335984.html
-http://www.mediasteak.com/utopia-serie/

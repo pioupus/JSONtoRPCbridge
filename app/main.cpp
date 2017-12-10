@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
     QString xmlpath = args.at(2);
     uint timeout_ms = parser.value(timeout_ms_Option).toInt();
 
-    qDebug() << "Hello world";
+    qDebug() << "RPC JSON Bridge";
 
     std::chrono::_V2::steady_clock::duration timeout;
 

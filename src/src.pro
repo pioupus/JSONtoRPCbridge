@@ -25,14 +25,15 @@ HEADERS +=    jsoninput.h
 HEADERS +=    rpcserialport.h
 HEADERS +=    mainclass.h
 HEADERS +=    rpcprotocol.h
-HEADERS +=    serialworker.h
+#HEADERS +=    serialworker.h
 HEADERS +=    qt_util.h
+HEADERS +=    vc.h
 
 SOURCES +=     jsoninput.cpp
 SOURCES +=     rpcserialport.cpp
 SOURCES +=     rpcprotocol.cpp
 SOURCES +=     mainclass.cpp
-SOURCES +=     serialworker.cpp
+#SOURCES +=     serialworker.cpp
 SOURCES +=     qt_util.cpp
 
 

@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <iostream>
 #include <memory>
+#include "qt_util.h"
 
 ConsoleInputWorker::ConsoleInputWorker()
     : in_stream{stdin} {}
@@ -11,10 +12,21 @@ ConsoleInputWorker::~ConsoleInputWorker() {}
 void ConsoleInputWorker::process() {
     bool is_finished = true;
     while (is_finished) {
-        //qDebug() << "console_input_thread threadID:" << QThread::currentThreadId();
-        QString str = in_stream.read(1);
+        in_stream.device()->waitForReadyRead(100);
+        QString data = in_stream.read(1);
+        if (data.count()) {
+            //qDebug() << "gotrequest:" << data;
+            emit input_received(QString(data));
+        }
+#if 0
+        qint64 return_value = in_stream.device()->read(&data, 1);
 
-        emit input_received(str);
+        if (return_value == 1) {
+
+        } else if (return_value < 0) {
+            qDebug() << "streamerror" << return_value;
+        }
+#endif
     }
 }
 
@@ -28,8 +40,6 @@ ApplicationClass::ApplicationClass(QString port_name, uint baud, QString xml_pat
 
     RPCSerialPort *serial_port = new RPCSerialPort();
 
-    //serial_port->moveToThread(serial_input_thread);
-
     serial_port->connect(port_name, baud);
 
     connect(console_input_worker, SIGNAL(input_received(QString)), this, SLOT(input_received(QString)));
@@ -37,22 +47,28 @@ ApplicationClass::ApplicationClass(QString port_name, uint baud, QString xml_pat
     connect(console_input_worker, SIGNAL(finished()), console_input_thread, SLOT(quit()));
     connect(console_input_worker, SIGNAL(finished()), console_input_worker, SLOT(deleteLater()));
     connect(console_input_thread, SIGNAL(finished()), console_input_thread, SLOT(deleteLater()));
-    console_input_thread->start();
+
     serial_input_thread->start();
-
-  //  serialThread = new SerialThread(this);
-
-  //  serialThread->open(port_name, baud);
 
     rpc_protocol = std::make_unique<RPCProtocol>(*serial_port, xml_path, timeout);
 
+    Utility::thread_call(this,  nullptr, [this] {
+      //  QCoreApplication::processEvents();
+        rpc_protocol->is_correct_protocol();
+        console_input_thread->start();
+
+    });
+
     json_input = std::make_unique<JsonInput>(rpc_protocol.get());
 
-    qDebug() << "mainclass threadID:" << QThread::currentThreadId();
+
+
+
+   // qDebug() << "mainclass threadID:" << QThread::currentThreadId();
 }
 
 void ApplicationClass::test() {
-    qDebug() << "sdsfsd";
+    //qDebug() << "sdsfsd";
 }
 
 void ApplicationClass::input_received(QString str) {

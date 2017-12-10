@@ -13,20 +13,28 @@
 #include <QJsonDocument>
 #include <QJsonValue>
 #include <assert.h>
+#include <vc.h>
 
 JsonInput::JsonInput(RPCProtocol *rpc_protocol_)
-    : rpc_protocol{rpc_protocol_} {}
+    : rpc_protocol{rpc_protocol_} {
+    //promised rpc_protocol->is_correct_protocol();
+}
 
 void JsonInput::clear_input_buffer() {
     input_buffer = "";
 }
 
 bool JsonInput::append_to_input_buffer(QString data) {
-    //qDebug() << data;
+    //  if (data.size()==0){
+    //      return false;
+    //  }
+    //  static uint32_t counter=0;
+    //  qDebug() << data << counter++;
     bool result = false;
 
     input_buffer += data;
     bool input_not_empty = true;
+    //qDebug() << "append_to_input_buffer" << data;
     while (input_not_empty) {
         QList<int> start_tag_positions;
         QList<int> stop_tag_positions;
@@ -54,8 +62,9 @@ bool JsonInput::append_to_input_buffer(QString data) {
                 }
                 auto str = input_buffer.mid(start, stop - start + QString("}/").length());
                 if (test_json_input(str)) {
+                    //qDebug() << "input_buffer" << input_buffer;
                     input_buffer.remove(0, stop + QString("}/").length());
-
+                    //qDebug() << "input_buffer" << input_buffer;
                     result = true;
                     found = true;
                     break;
@@ -77,8 +86,8 @@ bool JsonInput::test_json_input(QString str) {
     QJsonParseError p_err;
     str = str.remove(0, 1);                // remove the / of the /{
     str = str.remove(str.length() - 1, 1); // remove the / of the }/
-    //qDebug() << str;
 
+    //qDebug() << "test_json_input" << str;
     auto doc = QJsonDocument::fromJson(str.toUtf8(), &p_err);
 
     if (doc.isNull()) {
@@ -115,6 +124,19 @@ bool JsonInput::test_json_object(const QJsonObject &obj) {
                 }
             }
         }/
+
+        /{
+            "rpc":{
+                "timeout_ms":100,
+                "request":{
+                    "function": "get_adc_values",
+                    "arguments": {
+
+
+                    }
+                }
+            }
+        }/
     }
 
     {
@@ -124,7 +146,18 @@ bool JsonInput::test_json_object(const QJsonObject &obj) {
             "arguments": {
             }
         }/
+
+        /{
+        "controll":{
+            "command":"get_hash",
+            "result": {
+                "hash":"sdfsdfsdfsdfsdf"
+            }
+        }/
     }
+#endif
+#if 0
+    qDebug() << "received: " << obj;
 #endif
     if (!rpc.isEmpty()) {
         if (!rpc.contains("timeout_ms")) {
@@ -143,7 +176,6 @@ bool JsonInput::test_json_object(const QJsonObject &obj) {
         if (!request.contains("arguments")) {
             return false;
         }
-        qDebug() << "decoded successfully";
 
         json_to_rpc_call(obj);
         return true;
@@ -152,11 +184,14 @@ bool JsonInput::test_json_object(const QJsonObject &obj) {
             return false;
         }
         json_to_controll_command_execution(obj);
+        return true;
     }
     return false;
 }
 
 static void set_runtime_parameter(RPCRuntimeEncodedParam &param, QJsonValue jval) {
+
+    //qDebug() <<
     if (param.get_description()->get_type() == RPCRuntimeParameterDescription::Type::array && param.get_description()->as_array().number_of_elements == 1) {
         return set_runtime_parameter(param[0], jval);
     }
@@ -265,9 +300,9 @@ static QJsonObject call_rpc_function(RPCProtocol *rpc_protocol, const QString &n
     QJsonObject rpc;
     QJsonObject reply;
 
-    rpc_protocol->is_correct_protocol();
-
-    // Console::note() << QString("\"%1\" called").arg(name.c_str());
+    if (rpc_protocol->is_xml_loaded() == false) {
+        rpc_protocol->is_correct_protocol();
+    }
 
     if (!rpc_protocol->function_exists_for_encoding(name.toStdString())) {
         reply["result"] = "ERR_FUNCTION_NOT_FOUND";
@@ -275,14 +310,14 @@ static QJsonObject call_rpc_function(RPCProtocol *rpc_protocol, const QString &n
         reply["function"] = name;
         rpc["reply"] = reply;
         result["rpc"] = rpc;
-
         return result;
     }
+
     RPCRuntimeEncodedFunctionCall function = rpc_protocol->encode_function(name.toStdString());
 
     int param_count = function.get_parameter_count();
     for (int param_index = 0; param_index < param_count; param_index++) {
-        RPCRuntimeEncodedParam &param = function.get_parameter(param_index++);
+        RPCRuntimeEncodedParam &param = function.get_parameter(param_index);
         QString param_name = QString::fromStdString(param.get_description()->get_parameter_name());
         if (object.contains(param_name)) {
             QJsonValue value = object[param_name];
@@ -344,6 +379,8 @@ static QJsonObject call_rpc_function(RPCProtocol *rpc_protocol, const QString &n
         //throw std::runtime_error("Call to \"" + name.toStdString() + "\" failed due to timeout");
         return result;
     }
+
+    //qDebug() << object;
     reply["result"] = "ERR_MISSING_PARAMETERS";
     reply["function"] = name;
     rpc["reply"] = reply;
@@ -356,9 +393,14 @@ static QJsonObject call_rpc_function(RPCProtocol *rpc_protocol, const QString &n
 
 void JsonInput::Json_to_cout(const QJsonObject &obj) {
     QJsonDocument doc(obj);
+
     std::cout << "/{" << std::endl;
     std::cout << QString(doc.toJson()).toStdString() << std::endl;
-    std::cout << "}/" << std::endl;
+    std::cout << "}/" << std::endl << std::flush;
+
+#if 0
+    qDebug() << "Json_to_cout: /{" << QString(doc.toJson()) << "}/";
+#endif
 }
 
 void JsonInput::json_to_rpc_call(const QJsonObject &obj) {
@@ -379,5 +421,50 @@ void JsonInput::json_to_controll_command_execution(const QJsonObject &obj) {
     QString command = ctrl["command"].toString().toLower().trimmed();
     if (command == "quit") {
         QCoreApplication::quit();
+    } else if (command == "get_hash") {
+        QJsonObject controll;
+#if 0
+        /{
+        "controll":{
+            "command":"get_hash",
+            "result": {
+                "hash":"sdfsdfsdfsdfsdf"
+            }
+        }/
+#endif
+        QJsonObject result;
+        QJsonObject command_result;
+        result["hash"] = rpc_protocol->get_client_hash();
+        command_result["result"] = result;
+        controll["command"] = command;
+        controll["result"] = result;
+        command_result["controll"] = controll;
+        Json_to_cout(command_result);
+        //qDebug() << rpc_protocol->get_client_hash();
+    } else if (command == "get_version") {
+        QJsonObject controll;
+#if 0
+        /{
+        "controll":{
+            "command":"get_version",
+            "result": {
+                "git_hash":0x495ac3b,
+                "git_unix_date":213123123,
+                "git_string_date":"2017-06-16"
+            }
+        }/
+#endif
+        QJsonObject result;
+        QJsonObject command_result;
+        result["git_hash"] = GITHASH;
+        result["git_unix_date"] = GITUNIX;
+        result["git_string_date"] = GITDATE;
+
+        command_result["result"] = result;
+        controll["command"] = command;
+        controll["result"] = result;
+        command_result["controll"] = controll;
+        Json_to_cout(command_result);
+        //qDebug() << rpc_protocol->get_client_hash();
     }
 }

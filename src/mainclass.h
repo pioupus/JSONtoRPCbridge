@@ -4,7 +4,6 @@
 #include "jsoninput.h"
 #include "rpcprotocol.h"
 #include "rpcserialport.h"
-#include "serialworker.h"
 
 #include <QObject>
 #include <QTextStream>
@@ -39,8 +38,6 @@ class ApplicationClass : public QObject {
     QThread *serial_input_thread = nullptr;
     std::unique_ptr<JsonInput> json_input;
     RPCSerialPort serial_port;
-
-    SerialThread* serialThread;
 
     std::unique_ptr<RPCProtocol> rpc_protocol;
 };

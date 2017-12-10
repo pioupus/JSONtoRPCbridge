@@ -75,7 +75,11 @@ class RPCProtocol {
     QString get_device_summary();
 
     bool function_exists_for_encoding(const std::string &name) const;
+
+    bool is_xml_loaded();
+    QString get_client_hash();
 private:
+    bool _is_xml_loaded = false;
     std::unique_ptr<RPCRuntimeProtocol> rpc_runtime_protocol;
 
     void console_message(RPCConsoleLevel level, QString message);
