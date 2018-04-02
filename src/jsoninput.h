@@ -5,6 +5,8 @@
 #include <QList>
 #include <QString>
 
+typedef enum{json_not_ready,json_is_command,json_is_rpc} json_test_result_t;
+
 class RPCProtocol;
 
 class JsonInput {
@@ -18,8 +20,8 @@ class JsonInput {
 
     void json_to_controll_command_execution(const QJsonObject &obj);
 private:
-    bool test_json_input(QString str);
-    bool test_json_object(const QJsonObject &obj);
+    json_test_result_t test_json_input(QJsonObject obj);
+    json_test_result_t test_json_object(const QJsonObject &obj);
 
     void json_to_rpc_call(const QJsonObject &obj);
     void Json_to_cout(const QJsonObject & obj);
@@ -27,6 +29,7 @@ private:
     QJsonObject last_json_object;
 
     RPCProtocol *rpc_protocol = nullptr;
+    QJsonObject parse_json_input(QString str);
 };
 
 #endif // JSONINPUT_H

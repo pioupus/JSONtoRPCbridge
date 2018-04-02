@@ -12,6 +12,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonValue>
+#include <QThread>
 #include <assert.h>
 #include <vc.h>
 
@@ -25,9 +26,9 @@ void JsonInput::clear_input_buffer() {
 }
 
 bool JsonInput::append_to_input_buffer(QString data) {
-    //  if (data.size()==0){
-    //      return false;
-    //  }
+    if (data.size() == 0) {
+        return false;
+    }
     //  static uint32_t counter=0;
     //  qDebug() << data << counter++;
     bool result = false;
@@ -36,6 +37,7 @@ bool JsonInput::append_to_input_buffer(QString data) {
     bool input_not_empty = true;
     //qDebug() << "append_to_input_buffer" << data;
     while (input_not_empty) {
+        json_test_result_t json_test_result = json_not_ready;
         QList<int> start_tag_positions;
         QList<int> stop_tag_positions;
         bool found = false;
@@ -54,21 +56,50 @@ bool JsonInput::append_to_input_buffer(QString data) {
                 stop_tag_positions.append(i);
             }
         } while (i > -1);
-
+        QJsonObject obj;
         for (auto start : start_tag_positions) {
             for (auto stop : stop_tag_positions) {
                 if (stop < start) {
                     continue;
                 }
                 auto str = input_buffer.mid(start, stop - start + QString("}/").length());
-                if (test_json_input(str)) {
-                    //qDebug() << "input_buffer" << input_buffer;
-                    input_buffer.remove(0, stop + QString("}/").length());
-                    //qDebug() << "input_buffer" << input_buffer;
-                    result = true;
-                    found = true;
+                qDebug() << "test JSON";
+                qDebug() << "jsontest threadID:" << QThread::currentThreadId();
+                str = str.remove(0, 1);                // remove the / of the /{
+                str = str.remove(str.length() - 1, 1); // remove the / of the }/
+
+                obj = parse_json_input(str);
+
+                json_test_result = test_json_object(obj);
+                switch (json_test_result) {
+                    case json_not_ready:
+                        qDebug() << "JSON not ok";
+                        break;
+                    case json_is_command:
+                    case json_is_rpc:
+                        qDebug() << "JSON ok";
+                        //qDebug() << "input_buffer" << input_buffer;
+                        input_buffer.remove(0, stop + QString("}/").length());
+                        //qDebug() << "input_buffer" << input_buffer;
+                        result = true;
+                        found = true;
+                }
+                if (found) {
                     break;
                 }
+            }
+            switch (json_test_result) {
+                case json_not_ready:
+                    break;
+                case json_is_command:
+                    json_to_controll_command_execution(obj);
+
+                    break;
+                case json_is_rpc:
+                    json_to_rpc_call(obj);
+            }
+            if (found) {
+                break;
             }
         }
         if (found == false) {
@@ -82,27 +113,24 @@ QJsonObject JsonInput::get_last_json_object() {
     return last_json_object;
 }
 
-bool JsonInput::test_json_input(QString str) {
+QJsonObject JsonInput::parse_json_input(QString str) {
     QJsonParseError p_err;
-    str = str.remove(0, 1);                // remove the / of the /{
-    str = str.remove(str.length() - 1, 1); // remove the / of the }/
 
-    //qDebug() << "test_json_input" << str;
+    qDebug() << "test_json_input" << str;
     auto doc = QJsonDocument::fromJson(str.toUtf8(), &p_err);
 
     if (doc.isNull()) {
         qDebug() << "Json parser error. It says:" << p_err.errorString();
-        return false;
     }
-    QJsonObject obj = doc.object();
-    return test_json_object(obj);
+    return doc.object();
 }
 
-bool JsonInput::test_json_object(const QJsonObject &obj) {
+json_test_result_t JsonInput::test_json_object(const QJsonObject &obj) {
+    qDebug() << "test_json_object1";
     if (obj.isEmpty()) {
-        return false;
+        return json_not_ready;
     }
-
+    //qDebug() << "test_json_object2";
     const QJsonObject &rpc = obj["rpc"].toObject();
     const QJsonObject &ctrl = obj["controll"].toObject();
 
@@ -161,36 +189,36 @@ bool JsonInput::test_json_object(const QJsonObject &obj) {
 #endif
     if (!rpc.isEmpty()) {
         if (!rpc.contains("timeout_ms")) {
-            return false;
+            return json_not_ready;
         }
 
         const QJsonObject &request = rpc["request"].toObject();
         if (request.isEmpty()) {
-            return false;
+            return json_not_ready;
         }
 
         if (!request.contains("function")) {
-            return false;
+            return json_not_ready;
         }
 
         if (!request.contains("arguments")) {
-            return false;
+            return json_not_ready;
         }
+        //qDebug() << "test_json_object3";
 
-        json_to_rpc_call(obj);
-        return true;
+        //qDebug() << "test_json_object4";
+        return json_is_rpc;
     } else if (!ctrl.isEmpty()) {
         if (!ctrl.contains("command")) {
-            return false;
+            return json_not_ready;
         }
-        json_to_controll_command_execution(obj);
-        return true;
+
+        return json_is_command;
     }
-    return false;
+    return json_not_ready;
 }
 
 static void set_runtime_parameter(RPCRuntimeEncodedParam &param, QJsonValue jval) {
-
     //qDebug() <<
     if (param.get_description()->get_type() == RPCRuntimeParameterDescription::Type::array && param.get_description()->as_array().number_of_elements == 1) {
         return set_runtime_parameter(param[0], jval);
