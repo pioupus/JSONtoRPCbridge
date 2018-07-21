@@ -1,8 +1,10 @@
 #!/usr/bin/env python 
 import subprocess
+from influxdb import InfluxDBClient
 import time
 import os
 import json
+from datetime import datetime
 
 
 
@@ -205,6 +207,9 @@ print("rpc_result: "+str(result))
 
 first_value = True
 i = 0
+
+client = InfluxDBClient('localhost', 8086, 'root', 'root', 'thf_logger')
+
 while 1:
     test_function_param = {"channel":3}
     start_time = time.clock()
@@ -221,5 +226,30 @@ while 1:
         print("error: data skipped?")
         break
     i = i+1
+    
+
+    json_body =     [{
+        "measurement": "example_dataset",
+        "time": datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+        "fields": {
+            "current_l1": result["arguments"][0],
+            "current_l2":  result["arguments"][1],
+            "current_l3":  result["arguments"][2],
+            
+            "voltage_l12":  result["arguments"][3],
+            "voltage_l23":  result["arguments"][4],
+            "voltage_l31":  result["arguments"][5]8
+            
+            "voltage_temperature_l1":  result["arguments"][6],
+            "voltage_temperature_l2":  result["arguments"][7],
+            "voltage_temperature_l3":  result["arguments"][9],
+            
+            "voltage_aux":  result["arguments"][10]
+        }
+    }]
+        
+
+    
+    client.write_points(json_body)
     time.sleep(0.5)
 

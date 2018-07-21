@@ -10,9 +10,9 @@ TEMPLATE = subdirs
 
 SUBDIRS += app
 SUBDIRS += src
-SUBDIRS += tests
+#SUBDIRS += tests
 
 #src.depends = comModules/mocklayer/appPlugin
 app.depends = src
-tests.depends = src
+#tests.depends = src
 

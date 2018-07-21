@@ -20,7 +20,6 @@ class JsonInput {
 
     void json_to_controll_command_execution(const QJsonObject &obj);
 private:
-    json_test_result_t test_json_input(QJsonObject obj);
     json_test_result_t test_json_object(const QJsonObject &obj);
 
     void json_to_rpc_call(const QJsonObject &obj);

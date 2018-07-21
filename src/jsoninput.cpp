@@ -63,8 +63,8 @@ bool JsonInput::append_to_input_buffer(QString data) {
                     continue;
                 }
                 auto str = input_buffer.mid(start, stop - start + QString("}/").length());
-                qDebug() << "test JSON";
-                qDebug() << "jsontest threadID:" << QThread::currentThreadId();
+                //qDebug() << "test JSON";
+                //qDebug() << "jsontest threadID:" << QThread::currentThreadId();
                 str = str.remove(0, 1);                // remove the / of the /{
                 str = str.remove(str.length() - 1, 1); // remove the / of the }/
 
@@ -73,11 +73,11 @@ bool JsonInput::append_to_input_buffer(QString data) {
                 json_test_result = test_json_object(obj);
                 switch (json_test_result) {
                     case json_not_ready:
-                        qDebug() << "JSON not ok";
+                  //      qDebug() << "JSON not ok";
                         break;
                     case json_is_command:
                     case json_is_rpc:
-                        qDebug() << "JSON ok";
+                    //    qDebug() << "JSON ok";
                         //qDebug() << "input_buffer" << input_buffer;
                         input_buffer.remove(0, stop + QString("}/").length());
                         //qDebug() << "input_buffer" << input_buffer;
@@ -116,7 +116,7 @@ QJsonObject JsonInput::get_last_json_object() {
 QJsonObject JsonInput::parse_json_input(QString str) {
     QJsonParseError p_err;
 
-    qDebug() << "test_json_input" << str;
+    //qDebug() << "test_json_input" << str;
     auto doc = QJsonDocument::fromJson(str.toUtf8(), &p_err);
 
     if (doc.isNull()) {
@@ -126,7 +126,7 @@ QJsonObject JsonInput::parse_json_input(QString str) {
 }
 
 json_test_result_t JsonInput::test_json_object(const QJsonObject &obj) {
-    qDebug() << "test_json_object1";
+   // qDebug() << "test_json_object1";
     if (obj.isEmpty()) {
         return json_not_ready;
     }
