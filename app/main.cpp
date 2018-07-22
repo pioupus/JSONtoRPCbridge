@@ -5,6 +5,10 @@
 #include <QDebug>
 #include <QtCore/QCoreApplication>
 #include <cassert>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QJsonDocument>
+#include <QByteArray>
 
 enum CommandLineParseResult { CommandLineOk, CommandLineError, CommandLineVersionRequested, CommandLineHelpRequested };
 
@@ -36,6 +40,26 @@ void message_handler(QtMsgType type, const QMessageLogContext &context, const QS
 int main(int argc, char *argv[]) {
     old_handler = qInstallMessageHandler(message_handler);
     QCoreApplication a(argc, argv);
+
+#if 1
+    //https://bugreports.qt.io/browse/QTBUG-28467
+    // Trying to use as much digits as possible, the stored value is in fact 0.12340123401234013
+    uint32_t d1 = 1532267105;
+    // Store the value in a QJsonObject and use toJson() method to obtain a JSON parseable object
+    QJsonObject jObject;
+    jObject.insert("unix_time_in_json", QJsonValue(double(d1)));
+    QJsonDocument jDocument1(jObject);
+    QByteArray json_dump(jDocument1.toJson());
+    // Parse back the JSON object into a new QJsonDocument
+    QJsonDocument jDocument2(QJsonDocument::fromJson(json_dump));
+    // Obtain the stored value
+    uint32_t d2(jDocument2.object().value("unix_time_in_json").toDouble());
+    if (d1 == d2) {
+      //  qDebug() << "value " + QString(d1) + " correctly parsed in json";
+    } else {
+        qDebug() << "value " + QString(d1) + " inccorrectly parsed in json. resulted in: " + QString(d2);
+    }
+#endif
 
     QCommandLineParser parser;
     parser.setApplicationDescription("A bridge to RPC commands controlled by JSON-structures.");

@@ -9,7 +9,7 @@
 #include <functional>
 #include <future>
 #include <utility>
-
+#include <QDebug>
 //#include "scriptengine.h"
 class QTabWidget;
 class ScriptEngine;

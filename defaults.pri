@@ -7,6 +7,7 @@ QT =  core serialport xml
 
 INCLUDEPATH += $$PWD/src
 
+INCLUDEPATH += $$PWD/libs/qRPCRuntimeParser/project/libs/include/
 
 
 

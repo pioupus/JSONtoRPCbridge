@@ -1,8 +1,9 @@
 #include "mainclass.h"
+#include "qt_util.h"
 #include <QDebug>
 #include <iostream>
 #include <memory>
-#include "qt_util.h"
+
 
 ConsoleInputWorker::ConsoleInputWorker()
     : in_stream{stdin} {}
@@ -32,6 +33,8 @@ void ConsoleInputWorker::process() {
 
 ApplicationClass::ApplicationClass(QString port_name, uint baud, QString xml_path, std::chrono::_V2::steady_clock::duration timeout, QObject *parent)
     : QObject(parent) {
+
+
     console_input_thread = new QThread();
     serial_input_thread = new QThread();
 
@@ -52,19 +55,15 @@ ApplicationClass::ApplicationClass(QString port_name, uint baud, QString xml_pat
 
     rpc_protocol = std::make_unique<RPCProtocol>(*serial_port, xml_path, timeout);
 
-    Utility::thread_call(this,  nullptr, [this] {
-      //  QCoreApplication::processEvents();
+    Utility::thread_call(this, nullptr, [this] {
+        //  QCoreApplication::processEvents();
         rpc_protocol->is_correct_protocol();
         console_input_thread->start();
-
     });
 
     json_input = std::make_unique<JsonInput>(rpc_protocol.get());
 
-
-
-
-   // qDebug() << "mainclass threadID:" << QThread::currentThreadId();
+    // qDebug() << "mainclass threadID:" << QThread::currentThreadId();
 }
 
 void ApplicationClass::test() {
