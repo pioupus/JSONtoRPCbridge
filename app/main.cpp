@@ -16,6 +16,7 @@ enum CommandLineParseResult { CommandLineOk, CommandLineError, CommandLineVersio
 static QtMessageHandler old_handler;
 
 void message_handler(QtMsgType type, const QMessageLogContext &context, const QString &msg) {
+    (void)context;
     switch (type) {
         case QtCriticalMsg:
         case QtFatalMsg:
