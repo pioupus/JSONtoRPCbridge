@@ -1,14 +1,15 @@
 
 #include "mainclass.h"
 
+#include <QByteArray>
 #include <QCommandLineParser>
 #include <QDebug>
-#include <QtCore/QCoreApplication>
-#include <cassert>
+#include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
-#include <QJsonDocument>
-#include <QByteArray>
+#include <QTextStream>
+#include <QtCore/QCoreApplication>
+#include <cassert>
 
 enum CommandLineParseResult { CommandLineOk, CommandLineError, CommandLineVersionRequested, CommandLineHelpRequested };
 
@@ -31,10 +32,18 @@ void message_handler(QtMsgType type, const QMessageLogContext &context, const QS
             //                                                       ".\nAdd a breakpoint in main.cpp:28 to inspect the stack.\n"
             //                                                       "Press CTRL+C to copy the content of this message box to your clipboard.");
             break;
-        case QtDebugMsg:
-        case QtInfoMsg:;
+        case QtDebugMsg: {
+            QTextStream cout(stdout, QIODevice::WriteOnly);
+            cout << msg << endl;
+
+        } // qDebug() << "debug" <<msg;
+        break;
+        case QtInfoMsg: {
+            QTextStream cout(stdout, QIODevice::WriteOnly);
+            cout << msg << endl;
+        } break;
     }
-    old_handler(type, context, msg);
+   // old_handler(type, context, msg);
 }
 
 int main(int argc, char *argv[]) {
@@ -55,7 +64,7 @@ int main(int argc, char *argv[]) {
     // Obtain the stored value
     uint32_t d2(jDocument2.object().value("unix_time_in_json").toDouble());
     if (d1 == d2) {
-      //  qDebug() << "value " + QString(d1) + " correctly parsed in json";
+        //  qDebug() << "value " + QString(d1) + " correctly parsed in json";
     } else {
         qDebug() << "value " + QString(d1) + " inccorrectly parsed in json. resulted in: " + QString(d2);
     }
